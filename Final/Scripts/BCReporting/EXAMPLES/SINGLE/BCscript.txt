@@ -1,0 +1,4 @@
+text-report &
+layout:interleaved &
+options:display-mismatches &
+output-to:%3 %1 %2

@@ -1,0 +1,100 @@
+to use this script, you will need
+Python 2.7 (environment PATH should be set automatically)
+Beyond Compare 3
+
+there are two types of scripts you can run, batch or single
+
+// SINGLE
+
+to run the single pdf compare you need
+
+BCresults.py
+BCscript.txt
+BCsinglecompare.bat
+
+a example has been set up for you to walk through under 
+
+EXAMPLES\SINGLE
+
+open up BCsinglecompare.bat in notepad++
+if it is your first time using this, make sure the exe points to your BCompare.exe
+otherwise, set file1 and file2 to two pdfs in the same directory
+if it is in a subfolder, include that path, such as ASANQA\file1.pdf
+double click BCsinglecompare.bat
+if it is your first time using this, it is advised to check Close When Finished in the Beyond Compare 3 reporting tool
+	this will speed up the process a little bit
+double click BCresults.py
+open up the newly generated Report.txt
+
+
+
+// BATCH
+
+to run the batch pdf compare you need
+
+BCresults.py
+BCscript.txt
+BCcompare.bat
+BCbatchcompare.py
+BCbatchrun.py
+
+a example has been set up for you to walk through under 
+
+EXAMPLES\BATCH
+
+batch is easier, but you will need to setup the folders and files properly before you can run
+this means you will have to edit a couple of strings in python
+python spacing is very important. make sure you don't break it badly
+
+separate your comparison files into two folders based on the server which you're comparing it to
+
+inside both of the folders should be pdfs with the same name ( 001, 002, etc), hopefully corresponding to the folder name
+
+inside BCbatchcompare.py and BCbatchrun.py, there will be folder1 and folder2 variables that name a folder
+here, set the folder1 and folder2 to the two folders you put the files in
+
+run BCbatchcompare.py
+then run BCbatchrun.py
+
+the reports for the pdf name should be under the Reports folder with the same name as the pdfs
+
+
+
+
+// WHAT TO LOOK FOR
+
+the Report files generates a list of all differences between the two reports, ignoring "order"
+
+there are a few false negatives that you should check
+
+
+these are date negatives
+
+Tuesday, May 29, 2012 5:26:38 PM E. & O.E. Page 1 of 59
+
+because each file runs at a different time and the pdfs include the timestamp, you get a lot of these
+
+
+make sure the page numbers are equal. if they're unequal, you'll get things like
+
+Line 778 - LEROUX BEVERLY Your Report for Jan 1, 2000 to Mar 14, 2005
+Line 780 - 
+
+where one line is blank, and not matching any other line
+
+
+this is a multiple ownership false negative
+
+Line 151 - Assante Account #92727704NO Nominee Open - Sandra Adelman & Francene Adelman & Others
+Line 151 - Assante Account #92727704NO Nominee Open - Sandra Adelman & Lillian Adelman & Others
+
+because there are 3 or more owners, only two of them are selected at random, so Lillian Adelman is actually the Others in the first line
+
+// NOTES
+
+use a very high level path without spaces
+U:\user_name\BeyondCompare\Reports is good
+U:\user_name\Beyond Compare\Reports will fail
+
+only use the scripts from this folder.
+i will not update the scripts in the folders unless the functionality changes

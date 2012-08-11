@@ -1,0 +1,39 @@
+﻿Text Compare
+Produced: 5/30/2012 10:08:33 AM
+O: 001qa1.pdf - M: 001stage.pdf
+
+O: 001qa1.pdf: Line 48 - Friday, May 25, 2012 10:24:41 AM E. & O.E. Page 1 of 17
+M: 001stage.pdf: Line 48 - Friday, May 25, 2012 10:22:02 AM E. & O.E. Page 1 of 16
+O: 001qa1.pdf: Line 82 - Friday, May 25, 2012 10:24:41 AM E. & O.E. Page 2 of 17
+M: 001stage.pdf: Line 82 - Friday, May 25, 2012 10:22:03 AM E. & O.E. Page 2 of 16
+O: 001qa1.pdf: Line 115 - Friday, May 25, 2012 10:24:41 AM E. & O.E. Page 3 of 17
+M: 001stage.pdf: Line 115 - Friday, May 25, 2012 10:22:03 AM E. & O.E. Page 3 of 16
+O: 001qa1.pdf: Line 141 - Friday, May 25, 2012 10:24:42 AM E. & O.E. Page 4 of 17
+M: 001stage.pdf: Line 141 - Friday, May 25, 2012 10:22:04 AM E. & O.E. Page 4 of 16
+O: 001qa1.pdf: Line 163 - Friday, May 25, 2012 10:24:45 AM E. & O.E. Page 5 of 17
+M: 001stage.pdf: Line 163 - Friday, May 25, 2012 10:22:11 AM E. & O.E. Page 5 of 16
+O: 001qa1.pdf: Line 218 - Friday, May 25, 2012 10:24:47 AM E. & O.E. Page 6 of 17
+M: 001stage.pdf: Line 218 - Friday, May 25, 2012 10:22:17 AM E. & O.E. Page 6 of 16
+O: 001qa1.pdf: Line 273 - Friday, May 25, 2012 10:24:49 AM E. & O.E. Page 7 of 17
+M: 001stage.pdf: Line 273 - Friday, May 25, 2012 10:22:22 AM E. & O.E. Page 7 of 16
+O: 001qa1.pdf: Line 333 - Friday, May 25, 2012 10:24:51 AM E. & O.E. Page 8 of 17
+M: 001stage.pdf: Line 333 - Friday, May 25, 2012 10:22:26 AM E. & O.E. Page 8 of 16
+M: 001stage.pdf: Line 386 - Friday, May 25, 2012 10:22:31 AM E. & O.E. Page 9 of 16
+O: 001qa1.pdf: Line 393 - Friday, May 25, 2012 10:24:53 AM E. & O.E. Page 9 of 17
+M: 001stage.pdf: Line 442 - Friday, May 25, 2012 10:22:35 AM E. & O.E. Page 10 of 16
+O: 001qa1.pdf: Line 453 - Friday, May 25, 2012 10:24:55 AM E. & O.E. Page 10 of 17
+O: 001qa1.pdf: Line 485 - Friday, May 25, 2012 10:24:58 AM E. & O.E. Page 11 of 17
+M: 001stage.pdf: Line 485 - Friday, May 25, 2012 10:22:41 AM E. & O.E. Page 11 of 16
+O: 001qa1.pdf: Line 546 - Friday, May 25, 2012 10:25:04 AM E. & O.E. Page 12 of 17
+M: 001stage.pdf: Line 546 - Friday, May 25, 2012 10:22:52 AM E. & O.E. Page 12 of 16
+O: 001qa1.pdf: Line 601 - Friday, May 25, 2012 10:25:06 AM E. & O.E. Page 13 of 17
+M: 001stage.pdf: Line 608 - Friday, May 25, 2012 10:23:13 AM E. & O.E. Page 13 of 16
+O: 001qa1.pdf: Line 658 - Friday, May 25, 2012 10:25:08 AM E. & O.E. Page 14 of 17
+O: 001qa1.pdf: Line 659 - Rita Widmer Your Report for Mar 1, 2012 to Apr 16, 2012
+O: 001qa1.pdf: Line 663 - 
+O: 001qa1.pdf: Line 679 - Friday, May 25, 2012 10:25:17 AM E. & O.E. Page 15 of 17
+M: 001stage.pdf: Line 670 - Friday, May 25, 2012 10:23:42 AM E. & O.E. Page 14 of 16
+O: 001qa1.pdf: Line 747 - Friday, May 25, 2012 10:25:18 AM E. & O.E. Page 16 of 17
+M: 001stage.pdf: Line 738 - Friday, May 25, 2012 10:23:45 AM E. & O.E. Page 15 of 16
+O: 001qa1.pdf: Line 804 - Friday, May 25, 2012 10:25:18 AM E. & O.E. Page 17 of 17
+M: 001stage.pdf: Line 795 - Friday, May 25, 2012 10:23:45 AM E. & O.E. Page 16 of 16
