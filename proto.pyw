@@ -34,7 +34,6 @@ def unescape(text):
         return text # leave as is
     return re.sub("&#?\w+;", fixup, text)
 
-
 def removeAll(obj, item):
 	r = []
 	for i in obj:
@@ -47,8 +46,8 @@ path = "C:\Program Files (x86)\Beyond Compare 3\BComp.exe"
 files = os.listdir(".")
 
 ID_BUTTON=100
-ID_OPEN1=001
-ID_OPEN2=002
+ID_OPENL=001
+ID_OPENR=002
 ID_RDALL=021
 ID_RDONE=022
 
@@ -83,6 +82,8 @@ class fileDir( wx.ListCtrl, ListCtrlAutoWidthMixin):
 	def __init__(self, parent):
 		wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT, size=(-1,300))
 		ListCtrlAutoWidthMixin.__init__(self)
+		
+		self.lines = 0
 
 		self.InsertColumn(0, 'Name')
 		self.InsertColumn(1, 'Ext')
@@ -98,42 +99,61 @@ class fileDir( wx.ListCtrl, ListCtrlAutoWidthMixin):
 
 		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick, self)
 
+		
 	def OnClick(self, event):
-		ix_selected = self.GetFirstSelected()-1
+		ix_selected = self.GetFirstSelected()-1	
+		if ix_selected == -1:
+			return
+		files = []
+		for (dirpath, dirname, filename) in os.walk(os.path.abspath(".")):
+			files.extend(dirname)
+			files.extend(filename)
+			break
+		#print [i for i in files]
 		selected = os.path.abspath(files[ix_selected])
 		self.GetParent().url.ChangeValue(selected)
-		
+
 	def refreshList(self, dir):
+		self.emptyList()
+		files = []
+		for (dirpath, dirname, filename) in os.walk(dir):
+			files.extend(dirname)
+			files.extend(filename)
+			break
 		self.InsertStringItem(0, '..')
-		j = 1
+		self.lines += 1
 		for i in files:
 			(name, ext) = os.path.splitext(i)
 			ex = ext[1:]
 			size = os.path.getsize(i)
 			sec = os.path.getmtime(i)
-			self.InsertStringItem(j, name)
-			self.SetStringItem(j, 1, ex)
-			self.SetStringItem(j, 2, str(size) + ' B')
-			self.SetStringItem(j, 3, time.strftime('%Y-%m-%d %H:%M', time.localtime(sec)))
+			self.InsertStringItem(self.lines, name)
+			self.SetStringItem(self.lines, 1, ex)
+			self.SetStringItem(self.lines, 2, str(size) + ' B')
+			self.SetStringItem(self.lines, 3, time.strftime('%Y-%m-%d %H:%M', time.localtime(sec)))
 
-			if (j % 2) == 0:
-				self.SetItemBackgroundColour(j, '#e6f1f5')
-			j = j + 1
+			if (self.lines % 2) == 0:
+				self.SetItemBackgroundColour(self.lines, '#e6f1f5')
+			self.lines += 1
 
-	def onSelect(self, event):
-		state = states[ix_selected][0]
+	def emptyList(self):
+		while ( self.lines > 0):
+			self.DeleteItem(0)
+			self.lines -= 1
 
 class primPanel(wx.Panel):
 	def __init__(self, parent, title):
 		super(primPanel, self).__init__(parent, title)
 
 		self.url = wx.TextCtrl(self)
+		self.url.ChangeValue(os.path.abspath("proto.pyw"))
+
 		self.newdir = wx.Button(self, label="File")
 		self.newdir.Bind(wx.EVT_BUTTON, self.getNewFile)
 
 		self.prim = fileDir(self)
 
-		self.sec = wx.TextCtrl(self, style=wx.TE_MULTILINE, size=(-1,200))
+		self.sec = wx.TextCtrl(self, style=wx.TE_MULTILINE, size=(-1,300))
 		self.sec.Bind(wx.EVT_MENU, self.selectAllSecText, id=060)
 		accel_sec = wx.AcceleratorTable([(wx.ACCEL_CTRL,ord('A'),060)])
 		self.sec.SetAcceleratorTable(accel_sec)
@@ -142,7 +162,7 @@ class primPanel(wx.Panel):
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 
 		hbox.Add(self.url, 1, wx.RIGHT, border=5)
-		hbox.Add(self.newdir, 0, flag=wx.RIGHT, border=5)
+		hbox.Add(self.newdir, 0, flag=wx.RIGHT, border=3)
 
 		vbox.Add(hbox, 0, flag=wx.TOP|wx.EXPAND, border=5)
 		vbox.Add(self.prim, 1, flag=wx.TOP|wx.EXPAND, border=5)
@@ -158,8 +178,9 @@ class primPanel(wx.Panel):
 		dlg = wx.FileDialog( None, message="Choose a file", defaultFile="", style=wx.FD_OPEN|wx.FD_CHANGE_DIR)
 		if dlg.ShowModal() == wx.ID_OK:
 			self.url.ChangeValue(dlg.GetPath())
+			self.prim.refreshList("\\".join(dlg.GetPath().split("\\")[:-1]))
 		dlg.Destroy()
-	
+
 class PDFCompare(wx.Frame):
 	def __init__(self, parent, id, title):
 		wx.Frame.__init__(self, None, id, title)
@@ -173,14 +194,14 @@ class PDFCompare(wx.Frame):
 		self.p2.SetDropTarget(targ2)
 
 		filemenu = wx.Menu()
-		fileorigchange = filemenu.Append(ID_OPEN1,"Change Original File")
-		filemodichange = filemenu.Append(ID_OPEN2,"Change Modified File")
-		fileexit = filemenu.Append(wx.ID_EXIT,"E&xit"," Terminate the program")
+		fileorigchange = filemenu.Append(ID_OPENL,"Change &Left File")
+		filemodichange = filemenu.Append(ID_OPENR,"Change &Right File")
+		fileexit = filemenu.Append(wx.ID_EXIT,"E&xit","Terminate the program")
 
 		actionmenu = wx.Menu()
-		actionclear = filemenu.Append(ID_BUTTON + 6, "Clear All")
-		actionremone = filemenu.Append(ID_BUTTON + 7, "Remove One Duplicate")
-		actionremall = filemenu.Append(ID_BUTTON + 8, "Remove All Duplicates")
+		actionclear = filemenu.Append(ID_BUTTON + 6, "&Clear All")
+		actionremone = filemenu.Append(ID_BUTTON + 7, "Remove &One Duplicate")
+		actionremall = filemenu.Append(ID_BUTTON + 8, "Remove &All Duplicates")
 
 		menuBar = wx.MenuBar()
 		menuBar.Append(filemenu,"&File")
@@ -199,7 +220,7 @@ class PDFCompare(wx.Frame):
 
 		self.barsizer = wx.BoxSizer(wx.HORIZONTAL)
 
-		button1 = wx.Button(self, ID_BUTTON + 1, "1")
+		button1 = wx.Button(self, ID_BUTTON + 1, "Launch BC3")
 		button2 = wx.Button(self, ID_BUTTON + 2, "2")
 		button3 = wx.Button(self, ID_BUTTON + 3, "3")
 		button4 = wx.Button(self, ID_BUTTON + 4, "4")
@@ -217,6 +238,7 @@ class PDFCompare(wx.Frame):
 		self.barsizer.Add(button7, 1, wx.EXPAND)
 		self.barsizer.Add(button8, 1, wx.EXPAND)
 
+		self.Bind(wx.EVT_BUTTON, self.BC3Launch, button1)
 		self.Bind(wx.EVT_BUTTON, self.secClearAll, button6)
 		self.Bind(wx.EVT_BUTTON, self.secRemoveFirstDuplicate, button7)
 		self.Bind(wx.EVT_BUTTON, self.secRemoveDuplicates, button8)
@@ -232,7 +254,7 @@ class PDFCompare(wx.Frame):
 		self.SetSizerAndFit(self.sizer)
 
 		size = wx.DisplaySize()
-		self.SetSize((800,600))
+		self.SetSize((1280,800))
 
 		self.statusbar = self.CreateStatusBar()
 		self.statusbar.SetStatusText(os.getcwd())
@@ -246,13 +268,20 @@ class PDFCompare(wx.Frame):
 		self.p1.sec.ChangeValue("")
 		self.p2.sec.ChangeValue("")
 
+	def BC3Launch(self, evt):
+		commands = [path]
+		commands.append(self.p1.url.GetValue())
+		print self.p1.sec.GetValue()
+		commands.append(self.p2.url.GetValue())
+		subprocess.Popen(commands)
+
 	def	secRemoveDuplicates(self, evt):
 		sec1 = self.p1.sec.GetValue().splitlines()
 		sec2 = self.p2.sec.GetValue().splitlines()
 
 		for i in range(len(sec1)):
 			for j in range(len(sec2)):
-				if sec1[i] == sec2[j] and sec1[i] != "SETTOBEREMOVEDexa01%44":
+				if sec1[i].split() == sec2[j].split() and sec1[i] != "SETTOBEREMOVEDexa01%44":
 					sec1[i] = "SETTOBEREMOVEDexa01%44"
 					sec2[j] = "SETTOBEREMOVEDexa01%44"
 					continue
@@ -277,7 +306,7 @@ class PDFCompare(wx.Frame):
 		removed = 0
 		for i in range(len(sec1)):
 			for j in range(len(sec2)):
-				if sec1[i] == sec2[j] and sec1[i] != "SETTOBEREMOVEDexa01%44":
+				if sec1[i].split() == sec2[j].split() and sec1[i] != "SETTOBEREMOVEDexa01%44":
 					sec1[i] = "SETTOBEREMOVEDexa01%44"
 					sec2[j] = "SETTOBEREMOVEDexa01%44"
 					removed = 1
@@ -300,5 +329,5 @@ class PDFCompare(wx.Frame):
 			
 
 app = wx.App(0)
-PDFCompare(None, -1, 'Mismatched Text Compare')
+PDFCompare(None, -1, 'BTC')
 app.MainLoop()
