@@ -10,8 +10,6 @@ from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 import wx.lib.mixins.listctrl as listmix
 from time import sleep
 
-import re, htmlentitydefs
-
 current_file = "proto.pyw"
 bc3_path = "C:\Program Files (x86)\Beyond Compare 3\BComp.exe"
 ptt_path = os.path.abspath("ptt.exe")
@@ -26,6 +24,10 @@ ID_COPY=031
 ID_CUT=032
 ID_PASTE=033
 ID_SELA=034
+
+weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+days = [ str(i) for i in range(1,32) ]
 
 def remove_all(iter_object, to_remove):
 	temp = []
@@ -238,11 +240,14 @@ class PDFCompare(wx.Frame):
 		filemenu = wx.Menu()
 		fileorigchange = filemenu.Append(ID_OPENL,"Change &Left File")
 		filemodichange = filemenu.Append(ID_OPENR,"Change &Right File")
+		filebc3path = filemenu.Append(ID_BUTTON - 1,"Set BC3 Path")
 		fileexit = filemenu.Append(wx.ID_EXIT,"E&xit","Terminate the program")
 
 		actionmenu = wx.Menu()
 		actionlaunchbc3 = actionmenu.Append(ID_BUTTON + 1, "&Launch BC3")
 		actionloadfiles = actionmenu.Append(ID_BUTTON + 2, "Load &Files")
+		actionnewlines = actionmenu.Append(ID_BUTTON + 4, "Remove &Newlines")
+		actiondate = actionmenu.Append(ID_BUTTON + 5, "Remove &Dates")
 		actionclear = actionmenu.Append(ID_BUTTON + 6, "&Clear All")
 		actionremone = actionmenu.Append(ID_BUTTON + 7, "Remove &One Duplicate")
 		actionremall = actionmenu.Append(ID_BUTTON + 8, "Remove &All Duplicates")
@@ -254,11 +259,14 @@ class PDFCompare(wx.Frame):
 		self.SetMenuBar(menuBar)
 
 		self.Bind(wx.EVT_MENU, self.on_exit, fileexit)
+		self.Bind(wx.EVT_MENU, self.set_bc3_path, filebc3path)
 		self.Bind(wx.EVT_MENU, self.p1.get_new_file, fileorigchange)
 		self.Bind(wx.EVT_MENU, self.p2.get_new_file, filemodichange)
 
 		self.Bind(wx.EVT_MENU, self.launch_BC3, actionlaunchbc3)
 		self.Bind(wx.EVT_MENU, self.panels_sec_set_file, actionloadfiles)
+		self.Bind(wx.EVT_MENU, self.panels_sec_remove_newline, actionnewlines)
+		self.Bind(wx.EVT_MENU, self.panels_sec_remove_dates, actiondate)
 		self.Bind(wx.EVT_MENU, self.panels_sec_clear, actionclear)
 		self.Bind(wx.EVT_MENU, self.panels_sec_remove_one_duplicate, actionremone)
 		self.Bind(wx.EVT_MENU, self.panels_sec_remove_all_duplicates, actionremall)
@@ -270,8 +278,8 @@ class PDFCompare(wx.Frame):
 		button1 = wx.Button(self, ID_BUTTON + 1, "Launch BC3")
 		button2 = wx.Button(self, ID_BUTTON + 2, "Load Files")
 		button3 = wx.Button(self, ID_BUTTON + 3, "3")
-		button4 = wx.Button(self, ID_BUTTON + 4, "4")
-		button5 = wx.Button(self, ID_BUTTON + 5, "5")
+		button4 = wx.Button(self, ID_BUTTON + 4, "Remove Newlines")
+		button5 = wx.Button(self, ID_BUTTON + 5, "Remove Dates")
 		button6 = wx.Button(self, ID_BUTTON + 6, "Clear")
 		button7 = wx.Button(self, ID_BUTTON + 7, "One Duplicate")
 		button8 = wx.Button(self, ID_BUTTON + 8, "All Duplicates")
@@ -287,15 +295,20 @@ class PDFCompare(wx.Frame):
 
 		self.Bind(wx.EVT_BUTTON, self.launch_BC3, button1)
 		self.Bind(wx.EVT_BUTTON, self.panels_sec_set_file, button2)
+		self.Bind(wx.EVT_BUTTON, self.panels_sec_remove_newline, button4)
+		self.Bind(wx.EVT_BUTTON, self.panels_sec_remove_dates, button5)
 		self.Bind(wx.EVT_BUTTON, self.panels_sec_clear, button6)
 		self.Bind(wx.EVT_BUTTON, self.panels_sec_remove_one_duplicate, button7)
 		self.Bind(wx.EVT_BUTTON, self.panels_sec_remove_all_duplicates, button8)
 
+	def set_bc3_path(self, e):
+		dlg = wx.FileDialog( None, message="Choose select your BComp.exe file", defaultFile="", wildcard = "EXECUTABLES (*.exe)|*.exe", style=wx.FD_OPEN|wx.FD_CHANGE_DIR)
+		if dlg.ShowModal() == wx.ID_OK:
+			bc3_path = dlg.GetPath()
+		dlg.Destroy()
 
 	def on_exit(self,evt):
 		self.Close(True)
-
-
 
 	def launch_BC3(self, evt):
 		commands = [bc3_path]
@@ -304,25 +317,41 @@ class PDFCompare(wx.Frame):
 		subprocess.Popen(commands, shell=False)
 
 	def panels_sec_set_file(self, e):
-		
-		commands = [ptt_path]
-		commands.append("-layout")
-		commands.append("-nopgbrk")
-		commands.append(self.p1.get_url())
-		commands.append("exa01left.txt")
-		subprocess.call(commands)
-		s = "".join( open("exa01left.txt").readlines() )
-		self.p1.set_sec( s )
+		try:
+			type = self.p1.get_url().split(".")[-1]
+			if type == "pdf":
+				commands = [ptt_path]
+				commands.append("-layout")
+				commands.append("-nopgbrk")
+				commands.append(self.p1.get_url())
+				commands.append("exa01left.txt")
+				subprocess.call(commands)
+				s = "".join( open("exa01left.txt").readlines() )
+				self.p1.set_sec( s )
+			else:
+				s = "".join( open(self.p1.get_url()).readlines() )
+				self.p1.set_sec( s )
+		except:
+			s = "".join( open(self.p1.get_url()).readlines() )
+			self.p1.set_sec( s )
 
-		commands = [ptt_path]
-		commands.append("-layout")
-		commands.append("-nopgbrk")
-		commands.append(self.p2.get_url())
-		commands.append("exa01right.txt")
-		subprocess.call(commands)
-		s = "".join( open("exa01right.txt").readlines() )
-		self.p2.set_sec( s )
-
+		try:
+			type = self.p1.get_url().split(".")[-1]
+			if type == "pdf":
+				commands = [ptt_path]
+				commands.append("-layout")
+				commands.append("-nopgbrk")
+				commands.append(self.p2.get_url())
+				commands.append("exa01right.txt")
+				subprocess.call(commands)
+				s = "".join( open("exa01right.txt").readlines() )
+				self.p2.set_sec( s )
+			else:
+				s = "".join( open(self.p2.get_url()).readlines() )
+				self.p2.set_sec( s )
+		except:
+			s = "".join( open(self.p2.get_url()).readlines() )
+			self.p2.set_sec( s )
 
 	def panels_sec_clear(self, evt):
 		self.p1.sec.ChangeValue("")
@@ -333,44 +362,108 @@ class PDFCompare(wx.Frame):
 		right = self.p2.get_sec().splitlines()
 
 		for i in range(len(left)):
-			if left[i] == "SETTOBEREMOVEDexa01%44":
+			if left[i] == "xxcver213:nOne":
 				continue
 			for j in range(len(right)):
-				if left[i].split() == right[j].split():
-					left[i] = "SETTOBEREMOVEDexa01%44"
-					right[j] = "SETTOBEREMOVEDexa01%44"
+				if right[j] == "xxcver213:nOne":
 					continue
+				if left[i].split() == right[j].split():
+					left[i] = "xxcver213:nOne"
+					right[j] = "xxcver213:nOne"
+					break
 
-		left = remove_all(left, "SETTOBEREMOVEDexa01%44" )
-		right = remove_all(right, "SETTOBEREMOVEDexa01%44" )
+		left = remove_all(left, "xxcver213:nOne" )
+		right = remove_all(right, "xxcver213:nOne" )
 
 		self.p1.set_sec("\n".join(left))
 		self.p2.set_sec("\n".join(right))
-			
-	
+
 	def panels_sec_remove_one_duplicate(self, evt):
 		left = self.p1.get_sec().splitlines()
 		right = self.p2.get_sec().splitlines()
 
 		removed = 0
 		for i in range(len(left)):
-			if left[i] == "SETTOBEREMOVEDexa01%44":
+			if left[i] == "xxcver213:nOne":
 				continue
 			for j in range(len(right)):
+				if right[j] == "xxcver213:nOne":
+					continue
 				if left[i].split() == right[j].split():
-					left[i] = "SETTOBEREMOVEDexa01%44"
-					right[j] = "SETTOBEREMOVEDexa01%44"
+					left[i] = "xxcver213:nOne"
+					right[j] = "xxcver213:nOne"
 					removed = 1
 					break
 			if removed == 1:
 				break
 
-		left = remove_all(left, "SETTOBEREMOVEDexa01%44" )
-		right = remove_all(right, "SETTOBEREMOVEDexa01%44" )
+		left = remove_all(left, "xxcver213:nOne" )
+		right = remove_all(right, "xxcver213:nOne" )
 
 		self.p1.set_sec("\n".join(left))
 		self.p2.set_sec("\n".join(right))
-			
+	
+	def panels_sec_remove_dates(self, e):
+		
+		left = self.p1.get_sec().splitlines()
+		right = self.p2.get_sec().splitlines()
+
+
+		for line in range(len(left)):		
+			try: 
+				weekday = left[line].split()[0].rstrip(",").lower()
+				if weekday in weekdays:
+					month = left[line].split()[1].lower()
+					if month in months:
+						day = left[line].split()[2].rstrip(",")
+						if day in days:
+							left[line] = "xxcver213:nOne"
+			except: 
+				pass
+
+	
+		for line in range(len(right)):	
+			try:
+				weekday = right[line].split()[0].rstrip(",").lower()
+				if weekday in weekdays:
+					month = right[line].split()[1].lower()
+					if month in months:
+						day = right[line].split()[2].rstrip(",")
+						if day in days:
+							right[line] = "xxcver213:nOne"
+			except:
+				pass
+
+		left = remove_all(left, "xxcver213:nOne" )
+		right = remove_all(right, "xxcver213:nOne" )
+
+		self.p1.set_sec("\n".join(left))
+		self.p2.set_sec("\n".join(right))
+
+	def panels_sec_remove_newline(self, e):
+		pass
+
+		left = self.p1.get_sec().splitlines()
+		right = self.p2.get_sec().splitlines()
+
+		new_left = []
+		new_right = []
+
+		for line in left:
+			if not line.strip():
+				continue
+			else:
+				new_left.append(line)
+				
+		for line in right:
+			if not line.strip():
+				continue
+			else:
+				new_right.append(line)
+
+		self.p1.set_sec("\n".join(new_left))
+		self.p2.set_sec("\n".join(new_right))
+
 
 app = wx.App(0)
 PDFCompare(None, -1, 'BTC')

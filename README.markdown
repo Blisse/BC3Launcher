@@ -8,26 +8,18 @@ my spare time.
 
 Perhaps in the future, I will attempt to re-attempt the comparisons.
 
-<h3> Final </h3>
+<h3> History </h3>
 
-The Final folder contains a couple scripts I made to run and parse BC3's Reports. They can
-be run in single or batch format. I thought this was enough, but it turned out to be too difficult
-to set up and run.
+The History folder contains all my scripting attempts to copy BC3's features. They can be 
+run in single or batch format. I thought this was enough, but it's a tad too difficult to run.
 
-<h3> Trial </h3>
-
-The Trial folder contains my attempt to copy BC3's features, then my attempt to copy BC3's reports
-into my program, and some other tests. Not really that useful.
-
-I decided to use wxPython, an extension of wxWindows, to create a proper user interface.
+So I decided to use wxPython, an extension of wxWindows, to create a proper user interface.
 
 <h3> proto </h3>
 
-proto.pyw is my launcher program for BC3. I should add a check for the installation of Beyond Compare 3,
-namely the BCompare.exe file. It requires Python 2.7 to run properly. It is my finished product, which is
-nice to look at, but I could make some improvements. 
-
-Open the program, make sure two files are loaded and run Beyond Compare 3.
+proto.pyw is my launcher program for BC3. It requires Python 2.7 to run properly, as long as wxPython.
+It is my finished product, which is nice to look at, but I could make some improvements, especially on 
+my remove duplicates algorithm. 
 
 The main reason I made this program was the extra two text boxes at the bottom, which can find any duplicate
 lines in the two text boxes and remove them. It is a specific requirement for some of the reports that
