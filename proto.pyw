@@ -27,6 +27,12 @@ ID_CUT=032
 ID_PASTE=033
 ID_SELA=034
 
+def remove_all(iter_object, to_remove):
+	temp = []
+	for item in iter_object:
+		if item != to_remove:
+			temp.append(item)
+	return temp
 
 class MyFileDropTarget(wx.FileDropTarget):
 	def __init__(self, panel):
@@ -34,22 +40,12 @@ class MyFileDropTarget(wx.FileDropTarget):
 		self.panel = panel
 
 	def OnDropFiles(self, x, y, filenames):        
-		for name in filenames:
-			try:
-				file = open(name, 'r')
-				text = file.read()
-				file.close()
-			except IOError, error:
-				dlg = wx.MessageDialog(None, 'Error opening file\n' + str(error))
-				dlg.ShowModal()
-			except UnicodeDecodeError, error:
-				dlg = wx.MessageDialog(None, 'Cannot open non ascii files\n' + str(error))
-				dlg.ShowModal()
-		self.panel.prim.listctrl_link_all( os.path.abspath(filenames[0]) )
+		self.panel.set_url( os.path.abspath(filenames[0]) )
+		self.panel.prim.listctrl_link_all( self.panel.get_url() )
 
 class file_directory( wx.ListCtrl, ListCtrlAutoWidthMixin):
 	def __init__(self, parent):
-		wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT, size=(-1,300))
+		wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT, size=(-1,200))
 		ListCtrlAutoWidthMixin.__init__(self)
 
 		self.listctrl_create()
@@ -79,12 +75,18 @@ class file_directory( wx.ListCtrl, ListCtrlAutoWidthMixin):
 		for file in self.files:
 			(name, ext) = os.path.splitext(file)
 			ex = ext[1:]
-			size = os.path.getsize(file)
-			sec = os.path.getmtime(file)
+			try:
+				size = os.path.getsize(file)
+			except:
+				size = 0
+			try:
+				sec = os.path.getmtime(file)
+			except:
+				sec = 0
 			self.InsertStringItem(self.lines, name)
 			self.SetStringItem(self.lines, 1, ex)
 			self.SetStringItem(self.lines, 2, str(size) + ' B')
-			self.SetStringItem(self.lines, 3, time.strftime('%Y-%m-%d %H:%M', time.localtime(sec)))
+			self.SetStringItem(self.lines, 3, ( "-" if sec == 0 else time.strftime('%Y-%m-%d %H:%M', time.localtime(sec) ) ) )
 			if (self.lines % 2) == 0:
 				self.SetItemBackgroundColour(self.lines, '#e6f1f5')
 			self.add_line()
@@ -94,7 +96,7 @@ class file_directory( wx.ListCtrl, ListCtrlAutoWidthMixin):
 			self.delete_line()
 
 	def listctrl_link_all(self, path):
-		self.listctrl_link_backend(os.path.abspath(path))
+		self.listctrl_link_backend(path)
 		self.listctrl_refresh()
 	def listctrl_link_backend(self, path):
 		self.set_url(path)
@@ -109,10 +111,16 @@ class file_directory( wx.ListCtrl, ListCtrlAutoWidthMixin):
 
 	def set_cwd(self, path):
 		self.clear_cwd()
-		for (dirpath, dirname, filename) in os.walk(self.get_url()):
-			self.files.extend(dirname)
-			self.files.extend(filename)
-			break
+		if path == ".":
+			for (dirpath, dirname, filename) in os.walk("."):
+				self.files.extend(dirname)
+				self.files.extend(filename)
+				break
+		else:
+			for (dirpath, dirname, filename) in os.walk("\\".join(path.split("\\")[:-1])):
+				self.files.extend(dirname)
+				self.files.extend(filename)
+				break
 	def clear_cwd(self):
 		self.files = []
 	def get_cwd_index(self, index):
@@ -166,7 +174,7 @@ class file_panel(wx.Panel):
 	def panel_prim_create(self):
 		self.prim = file_directory(self)
 	def panel_sec_create(self):
-		self.sec = wx.TextCtrl(self, style=wx.TE_MULTILINE, size=(-1,300))
+		self.sec = wx.TextCtrl(self, style=wx.TE_MULTILINE, size=(-1,400))
 	def panel_sec_bind(self):
 		self.sec.Bind(wx.EVT_MENU, self.select_sec_all_text, id=060)
 		accel_sec = wx.AcceleratorTable([(wx.ACCEL_CTRL,ord('A'),060)])
@@ -233,11 +241,11 @@ class PDFCompare(wx.Frame):
 		fileexit = filemenu.Append(wx.ID_EXIT,"E&xit","Terminate the program")
 
 		actionmenu = wx.Menu()
-		actionlaunchbc3 = filemenu.Append(ID_BUTTON + 1, "&Launch BC3")
-		actionloadfiles = filemenu.Append(ID_BUTTON + 2, "Load &Files")
-		actionclear = filemenu.Append(ID_BUTTON + 6, "&Clear All")
-		actionremone = filemenu.Append(ID_BUTTON + 7, "Remove &One Duplicate")
-		actionremall = filemenu.Append(ID_BUTTON + 8, "Remove &All Duplicates")
+		actionlaunchbc3 = actionmenu.Append(ID_BUTTON + 1, "&Launch BC3")
+		actionloadfiles = actionmenu.Append(ID_BUTTON + 2, "Load &Files")
+		actionclear = actionmenu.Append(ID_BUTTON + 6, "&Clear All")
+		actionremone = actionmenu.Append(ID_BUTTON + 7, "Remove &One Duplicate")
+		actionremall = actionmenu.Append(ID_BUTTON + 8, "Remove &All Duplicates")
 
 		menuBar = wx.MenuBar()
 		menuBar.Append(filemenu,"&File")
@@ -287,24 +295,13 @@ class PDFCompare(wx.Frame):
 	def on_exit(self,evt):
 		self.Close(True)
 
-	def iter_remove_all(self, iter_object, to_remove):
-		temp = []
-		for item in iter_object:
-			if item != to_remove:
-				temp.append(item)
-		return temp
-	def iter_build_per_line(self, iter_object):
-		temp = ""
-		for item in iter_object:
-			temp += item + "\n"
-		return temp
 
 
 	def launch_BC3(self, evt):
 		commands = [bc3_path]
 		commands.append(self.p1.get_url())
 		commands.append(self.p2.get_url())
-		subprocess.Popen(commands)
+		subprocess.Popen(commands, shell=False)
 
 	def panels_sec_set_file(self, e):
 		
@@ -312,45 +309,21 @@ class PDFCompare(wx.Frame):
 		commands.append("-layout")
 		commands.append("-nopgbrk")
 		commands.append(self.p1.get_url())
-		self.p1.set_sec( subprocess.Popen(commands, stdout=subprocess.PIPE).communicate()[0] )
+		commands.append("exa01left.txt")
+		subprocess.call(commands)
+		s = "".join( open("exa01left.txt").readlines() )
+		self.p1.set_sec( s )
 
 		commands = [ptt_path]
 		commands.append("-layout")
 		commands.append("-nopgbrk")
 		commands.append(self.p2.get_url())
-		self.p2.set_sec( subprocess.Popen(commands, stdout=subprocess.PIPE).communicate()[0] )
+		commands.append("exa01right.txt")
+		subprocess.call(commands)
+		s = "".join( open("exa01right.txt").readlines() )
+		self.p2.set_sec( s )
 
-		"""left_url = self.p1.get_url()
-		left_type = left_url.split(".")[-1]
-		right_url = self.p2.get_url()
-		right_type = right_url.split(".")[-1]
-		print right_type
 
-		if left_type != "txt" or left_type != "pdf":
-			wx.MessageBox('Invalid Left File Type', 'Error', wx.OK | wx.ICON_INFORMATION)
-		if right_type != "txt" or right_type != "pdf":
-			wx.MessageBox('Invalid Right File Type', 'Error', wx.OK | wx.ICON_INFORMATION)
-
-		if left_type == "txt":
-			left = open(left_url)
-			self.p2.set_sec( iter_build_per_line(left) )
-		elif left_type == "pdf":
-			commands = [ptt_path]
-			commands.append("-layout")
-			commands.append("-nopgbrk")
-			commands.append(left_url)
-			self.p1.set_sec( subprocess.Popen(commands, stdout=PIPE).communicate()[0] )
-
-		if right_type == "txt":
-			right = open(right_url)
-			self.p2.set_sec( iter_build_per_line(right) )
-		elif right_type == "pdf":
-			commands = [ptt_path]
-			commands.append("-layout")
-			commands.append("-nopgbrk")
-			commands.append(right_url)
-			self.p2.set_sec( subprocess.Popen(commands, stdout=PIPE).communicate()[0] )
-		"""
 	def panels_sec_clear(self, evt):
 		self.p1.sec.ChangeValue("")
 		self.p2.sec.ChangeValue("")
@@ -360,20 +333,20 @@ class PDFCompare(wx.Frame):
 		right = self.p2.get_sec().splitlines()
 
 		for i in range(len(left)):
+			if left[i] == "SETTOBEREMOVEDexa01%44":
+				continue
 			for j in range(len(right)):
-				if left[i].split() == right[j].split() and left[i] != "SETTOBEREMOVEDexa01%44":
+				if left[i].split() == right[j].split():
 					left[i] = "SETTOBEREMOVEDexa01%44"
 					right[j] = "SETTOBEREMOVEDexa01%44"
-					break
+					continue
 
-		left = self.iter_remove_all(left, "SETTOBEREMOVEDexa01%44" )
-		right = self.iter_remove_all(right, "SETTOBEREMOVEDexa01%44" )
-		
-		left = iter_build_per_line(left)
-		right = iter_build_per_line(right)
+		left = remove_all(left, "SETTOBEREMOVEDexa01%44" )
+		right = remove_all(right, "SETTOBEREMOVEDexa01%44" )
 
-		self.p1.set_sec(left)
-		self.p2.set_sec(right)
+		self.p1.set_sec("\n".join(left))
+		self.p2.set_sec("\n".join(right))
+			
 	
 	def panels_sec_remove_one_duplicate(self, evt):
 		left = self.p1.get_sec().splitlines()
@@ -381,8 +354,10 @@ class PDFCompare(wx.Frame):
 
 		removed = 0
 		for i in range(len(left)):
+			if left[i] == "SETTOBEREMOVEDexa01%44":
+				continue
 			for j in range(len(right)):
-				if left[i].split() == right[j].split() and left[i] != "SETTOBEREMOVEDexa01%44":
+				if left[i].split() == right[j].split():
 					left[i] = "SETTOBEREMOVEDexa01%44"
 					right[j] = "SETTOBEREMOVEDexa01%44"
 					removed = 1
@@ -390,14 +365,11 @@ class PDFCompare(wx.Frame):
 			if removed == 1:
 				break
 
-		left = self.iter_remove_all(left, "SETTOBEREMOVEDexa01%44" )
-		right = self.iter_remove_all(right, "SETTOBEREMOVEDexa01%44" )
-		
-		left = iter_build_per_line(left)
-		right = iter_build_per_line(right)
+		left = remove_all(left, "SETTOBEREMOVEDexa01%44" )
+		right = remove_all(right, "SETTOBEREMOVEDexa01%44" )
 
-		self.p1.set_sec(left)
-		self.p2.set_sec(right)
+		self.p1.set_sec("\n".join(left))
+		self.p2.set_sec("\n".join(right))
 			
 
 app = wx.App(0)
