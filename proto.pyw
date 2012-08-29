@@ -246,6 +246,7 @@ class PDFCompare(wx.Frame):
 		actionmenu = wx.Menu()
 		actionlaunchbc3 = actionmenu.Append(ID_BUTTON + 1, "&Launch BC3")
 		actionloadfiles = actionmenu.Append(ID_BUTTON + 2, "Load &Files")
+		actioninline = actionmenu.Append(ID_BUTTON + 3, "&Inline BC3")
 		actionnewlines = actionmenu.Append(ID_BUTTON + 4, "Remove &Newlines")
 		actiondate = actionmenu.Append(ID_BUTTON + 5, "Remove &Dates")
 		actionclear = actionmenu.Append(ID_BUTTON + 6, "&Clear All")
@@ -265,6 +266,7 @@ class PDFCompare(wx.Frame):
 
 		self.Bind(wx.EVT_MENU, self.launch_BC3, actionlaunchbc3)
 		self.Bind(wx.EVT_MENU, self.panels_sec_set_file, actionloadfiles)
+		self.Bind(wx.EVT_MENU, self.panels_sec_launch_BC3, actioninline)
 		self.Bind(wx.EVT_MENU, self.panels_sec_remove_newline, actionnewlines)
 		self.Bind(wx.EVT_MENU, self.panels_sec_remove_dates, actiondate)
 		self.Bind(wx.EVT_MENU, self.panels_sec_clear, actionclear)
@@ -277,7 +279,7 @@ class PDFCompare(wx.Frame):
 
 		button1 = wx.Button(self, ID_BUTTON + 1, "Launch BC3")
 		button2 = wx.Button(self, ID_BUTTON + 2, "Load Files")
-		button3 = wx.Button(self, ID_BUTTON + 3, "3")
+		button3 = wx.Button(self, ID_BUTTON + 3, "In-line BC3")
 		button4 = wx.Button(self, ID_BUTTON + 4, "Remove Newlines")
 		button5 = wx.Button(self, ID_BUTTON + 5, "Remove Dates")
 		button6 = wx.Button(self, ID_BUTTON + 6, "Clear")
@@ -295,6 +297,7 @@ class PDFCompare(wx.Frame):
 
 		self.Bind(wx.EVT_BUTTON, self.launch_BC3, button1)
 		self.Bind(wx.EVT_BUTTON, self.panels_sec_set_file, button2)
+		self.Bind(wx.EVT_BUTTON, self.panels_sec_launch_BC3, button3)
 		self.Bind(wx.EVT_BUTTON, self.panels_sec_remove_newline, button4)
 		self.Bind(wx.EVT_BUTTON, self.panels_sec_remove_dates, button5)
 		self.Bind(wx.EVT_BUTTON, self.panels_sec_clear, button6)
@@ -408,7 +411,6 @@ class PDFCompare(wx.Frame):
 		left = self.p1.get_sec().splitlines()
 		right = self.p2.get_sec().splitlines()
 
-
 		for line in range(len(left)):		
 			try: 
 				weekday = left[line].split()[0].rstrip(",").lower()
@@ -421,7 +423,6 @@ class PDFCompare(wx.Frame):
 			except: 
 				pass
 
-	
 		for line in range(len(right)):	
 			try:
 				weekday = right[line].split()[0].rstrip(",").lower()
@@ -441,7 +442,6 @@ class PDFCompare(wx.Frame):
 		self.p2.set_sec("\n".join(right))
 
 	def panels_sec_remove_newline(self, e):
-		pass
 
 		left = self.p1.get_sec().splitlines()
 		right = self.p2.get_sec().splitlines()
@@ -464,6 +464,24 @@ class PDFCompare(wx.Frame):
 		self.p1.set_sec("\n".join(new_left))
 		self.p2.set_sec("\n".join(new_right))
 
+	def panels_sec_launch_BC3(self, e):
+
+		left = "\n".join( self.p1.get_sec().splitlines() ).encode('utf-8')
+		right = "\n".join( self.p2.get_sec().splitlines() ).encode('utf-8')
+
+		lfile = "newlfile.txt"
+		rfile = "newrfile.txt"
+
+		l = open(lfile, "w")
+		r = open(rfile, "w")
+
+		l.write(left)
+		r.write(right)
+
+		commands = [bc3_path]
+		commands.append(lfile)
+		commands.append(rfile)
+		subprocess.Popen(commands, shell=False)
 
 app = wx.App(0)
 PDFCompare(None, -1, 'BTC')
