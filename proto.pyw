@@ -25,8 +25,8 @@ ID_CUT=032
 ID_PASTE=033
 ID_SELA=034
 
-weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december", "janvier", "fevrier", "mars", "avril", "mai", "juin", "juillet", "aout", "septembre", "octobre", "novembre", "decembre"]
 days = [ str(i) for i in range(1,32) ]
 
 def remove_all(iter_object, to_remove):
@@ -49,6 +49,7 @@ class file_directory( wx.ListCtrl, ListCtrlAutoWidthMixin):
 	def __init__(self, parent):
 		wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT, size=(-1,200))
 		ListCtrlAutoWidthMixin.__init__(self)
+		self.SetFont( wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL ) )
 
 		self.listctrl_create()
 		self.listctrl_bind()
@@ -58,6 +59,7 @@ class file_directory( wx.ListCtrl, ListCtrlAutoWidthMixin):
 	def listctrl_create(self):	
 		self.lines = 0
 		self.files = []
+		self.dir = "\\".join(os.path.abspath(".").split("\\")[:-1])
 
 		self.InsertColumn(0, 'Name')
 		self.InsertColumn(1, 'Ext')
@@ -104,6 +106,12 @@ class file_directory( wx.ListCtrl, ListCtrlAutoWidthMixin):
 		self.set_url(path)
 		self.set_cwd(path)
 
+	def set_dir(self, path):
+		self.dir = "\\".join(os.path.abspath(path).split("\\")[:-1])
+		print self.dir
+	def get_dir(self):
+		return self.dir
+	
 	def get_line(self):
 		return self.lines
 	def add_line(self):
@@ -113,13 +121,14 @@ class file_directory( wx.ListCtrl, ListCtrlAutoWidthMixin):
 
 	def set_cwd(self, path):
 		self.clear_cwd()
+		self.set_dir( path )
 		if path == ".":
 			for (dirpath, dirname, filename) in os.walk("."):
 				self.files.extend(dirname)
 				self.files.extend(filename)
 				break
 		else:
-			for (dirpath, dirname, filename) in os.walk("\\".join(path.split("\\")[:-1])):
+			for (dirpath, dirname, filename) in os.walk("\\".join(os.path.abspath(path).split("\\")[:-1])):
 				self.files.extend(dirname)
 				self.files.extend(filename)
 				break
@@ -139,7 +148,7 @@ class file_directory( wx.ListCtrl, ListCtrlAutoWidthMixin):
 		selected_index = self.GetFirstSelected()-1	
 		if selected_index == -1:
 			return
-		self.set_url( os.path.abspath( self.get_cwd_index( selected_index ) ) )
+		self.set_url( self.get_dir() + "\\" + self.get_cwd_index( selected_index ) )
 
 
 class file_panel(wx.Panel):
@@ -176,7 +185,8 @@ class file_panel(wx.Panel):
 	def panel_prim_create(self):
 		self.prim = file_directory(self)
 	def panel_sec_create(self):
-		self.sec = wx.TextCtrl(self, style=wx.TE_MULTILINE, size=(-1,400))
+		self.sec = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.HSCROLL, size=(-1,400))
+		self.sec.SetFont( wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL ) )
 	def panel_sec_bind(self):
 		self.sec.Bind(wx.EVT_MENU, self.select_sec_all_text, id=060)
 		accel_sec = wx.AcceleratorTable([(wx.ACCEL_CTRL,ord('A'),060)])
@@ -241,6 +251,7 @@ class PDFCompare(wx.Frame):
 		fileorigchange = filemenu.Append(ID_OPENL,"Change &Left File")
 		filemodichange = filemenu.Append(ID_OPENR,"Change &Right File")
 		filebc3path = filemenu.Append(ID_BUTTON - 1,"Set BC3 Path")
+		filepttpath = filemenu.Append(ID_BUTTON - 2,"Set PTT Path")
 		fileexit = filemenu.Append(wx.ID_EXIT,"E&xit","Terminate the program")
 
 		actionmenu = wx.Menu()
@@ -261,6 +272,7 @@ class PDFCompare(wx.Frame):
 
 		self.Bind(wx.EVT_MENU, self.on_exit, fileexit)
 		self.Bind(wx.EVT_MENU, self.set_bc3_path, filebc3path)
+		self.Bind(wx.EVT_MENU, self.set_ptt_path, filepttpath)
 		self.Bind(wx.EVT_MENU, self.p1.get_new_file, fileorigchange)
 		self.Bind(wx.EVT_MENU, self.p2.get_new_file, filemodichange)
 
@@ -308,6 +320,12 @@ class PDFCompare(wx.Frame):
 		dlg = wx.FileDialog( None, message="Choose select your BComp.exe file", defaultFile="", wildcard = "EXECUTABLES (*.exe)|*.exe", style=wx.FD_OPEN|wx.FD_CHANGE_DIR)
 		if dlg.ShowModal() == wx.ID_OK:
 			bc3_path = dlg.GetPath()
+		dlg.Destroy()	
+
+	def set_ptt_path(self, e):
+		dlg = wx.FileDialog( None, message="Choose select your ptt.exe file", defaultFile="", wildcard = "EXECUTABLES (*.exe)|*.exe", style=wx.FD_OPEN|wx.FD_CHANGE_DIR)
+		if dlg.ShowModal() == wx.ID_OK:
+			ptt_path = dlg.GetPath()
 		dlg.Destroy()
 
 	def on_exit(self,evt):
