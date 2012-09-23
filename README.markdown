@@ -86,7 +86,6 @@ This is a pdf-to-text tool taken from Beyond Compare 3. It's necessary so that t
 
 
 
-
 <h2> About </h2>
 
-If you have any concerns or improvements, please e-mail v6lai@uwaterloo.ca and I'll get back to you. Thanks.
+If you have any concerns or improvements to suggest, please e-mail <a href="mailto:lai.victor.vl@gmail.com">lai.victor.vl@gmail.com</a> and I'll get back to you. Thanks.
